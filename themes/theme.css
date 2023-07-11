@@ -1,0 +1,6 @@
+.mask1 {
+    -webkit-mask-image: url(resources\ui\units\mask\rom_legionaries_mask_1.png);
+    mask-image: url(resources\ui\units\mask\rom_legionaries_mask_1.png);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
