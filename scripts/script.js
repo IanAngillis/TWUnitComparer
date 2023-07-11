@@ -41,10 +41,24 @@ const MP_FACTIONS = [
     "Tylis"
 ];
 
+const CLASSES = {
+    "com":	"Command",
+    "inf_mel":	"Melee Infantry",
+    "inf_spr":	"Spear Infantry",
+    "inf_pik":	"Pike Infantry",
+    "inf_mis":	"Missile Infantry",
+    "cav_shk":	"Shock Cavalry",
+    "cav_mel": "Melee Cavalry",
+    "cav_mis":	"Missile Cavalry",
+    "chariot":	"Chariot",
+    "elph":	"Elephant",
+    "spcl":	"Special"
+}
+
 const lineSeperator = "\n";
 const attributeSeperator = "\t";
 const factionPath = "resources\\db\\factions_tables\\factions.tsv";
-const factionToUnitPath = "resources\\db\\units_to_groupings_military_permissions_tables\\units_to_groupings_military_permissions.tsv";
+const factionToUnitPath = "resources\\db\\units_custom_battle_permissions_tables\\units_custom_battle_permissions.tsv";
 const landUnitsPath = "resources\\db\\land_units_tables\\land_units.tsv";
 const mainUnitsPath = "resources\\db\\main_units_tables\\main_units.tsv";
 const unitNamesPath = "resources\\text\\db\\land_units.loc.tsv";
@@ -318,7 +332,7 @@ class Unit{
             this.audio_vo_actor_group = audio_vo_actor_group;
             this.screen_name = screen_name;
 
-            let lowercaseKey = this.key.toLowerCase();
+            let lowercaseKey = this.key.toLowerCase().replace("mer_", "").replace("sar_", "");
             this.imagePath = iconFolder + lowercaseKey + ".png";
             this.maskPath = maskFolder + lowercaseKey + "_mask_1.png";
     }
@@ -549,12 +563,12 @@ async function loadFactions(){
         let rawFactionInfo = getSchemaIndexes(factionSchema).map(idx => splitLine[idx]);
         let faction = createFaction.apply(this, rawFactionInfo)
 
-        let unitKeys = factionToUnitContent.filter(factionToUnit => factionToUnit[1] == faction.military_group).map(r => r[0]);
+        let unitKeys = factionToUnitContent.filter(factionToUnit => factionToUnit[0] == faction.key).map(r => r[2]);
         faction.addUnitKeys(unitKeys);
 
         factions.push(faction);
     });
-    return factions.filter(faction => faction.mp_available);
+    return factions.filter(faction => faction.mp_available && MP_FACTIONS.includes(faction.screen_name));
 }
 
 async function loadUnits(faction, landUnitsContent, mainUnitsContent, unitNamesContent){
@@ -591,43 +605,62 @@ window.onload = async function(){
     let landUnitsContent = await GetAndParseResource(landUnitsPath);
     let mainUnitsContent = await GetAndParseResource(mainUnitsPath);
     let unitNamesContent = await GetAndParseResource(unitNamesPath);
-    let unitDivElement = document.getElementById("units");
+    let unitsDivElement = document.getElementById("units");
     let factions = await loadFactions();
 
     factions.forEach(faction => {
         loadUnits(faction, landUnitsContent, mainUnitsContent, unitNamesContent);
 
         let factionDivElement = document.createElement("div");
+        let h1Element = document.createElement("h1");
+        h1Element.innerText = faction.screen_name;
 
+        factionDivElement.appendChild(h1Element);
 
-        faction.units.forEach(unit => {
-            let unitDivElement = document.createElement("div");
-            let iconImageElement = document.createElement("img");
-            let maskImageElement = document.createElement("img");
+        Object.keys(CLASSES).forEach(cl => {
+            let units = faction.units.filter(unit => unit.unit_class == cl).sort((u1, u2) => u1.multiplayer_cost < u2.multiplayer_cost);
 
-            iconImageElement.src = unit.imagePath;
-            iconImageElement.alt = "Original image";
-            iconImageElement.classList.add("image");
+            if(units.length == 0) return;
+            let subcategoryDivElement = document.createElement("div");
+            let subcategoryH3Element = document.createElement("h3");
+            subcategoryH3Element.innerText = CLASSES[cl];
 
-            maskImageElement.src = unit.maskPath;
-            maskImageElement.alt = "Red mask";
-            iconImageElement.classList.add("mask");
+            subcategoryDivElement.appendChild(subcategoryH3Element);
 
-            unitDivElement.classList.add("unit_card");
-            unitDivElement.appendChild(iconImageElement);
-            unitDivElement.appendChild(maskImageElement);
+            units.forEach(unit => {
+                let unitDivElement = document.createElement("div");
+                let iconImageElement = document.createElement("img");
+                let maskImageElement = document.createElement("img");
+            
 
-            unitDivElement.addEventListener("click", function(){
-                window.alert(unit);
-            });
+                iconImageElement.src = unit.imagePath;
+                iconImageElement.alt = "Original image";
+                iconImageElement.classList.add("image");
 
-            factionDivElement.appendChild(unitDivElement);
+                maskImageElement.src = unit.maskPath;
+                maskImageElement.alt = "Red mask";
+                maskImageElement.classList.add("mask");
+
+                unitDivElement.classList.add("unit_card");
+                unitDivElement.appendChild(iconImageElement);
+                unitDivElement.appendChild(maskImageElement);
+
+                unitDivElement.addEventListener("click", function(){
+                    window.alert(JSON.stringify(unit));
+                });
+
+                subcategoryDivElement.appendChild(unitDivElement);
+
+            })
+
+            factionDivElement.appendChild(subcategoryDivElement);
         });
 
-        
-
-        unitDivElement.appendChild(factionDivElement);
+        unitsDivElement.appendChild(factionDivElement);
+        unitsDivElement.appendChild(document.createElement("br"));
     });
 
     console.log(factions);
+    // let ress = await getResource("resources\\ui\\units\\icons\\");
+    // console.log(ress);
 }
