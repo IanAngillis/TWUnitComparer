@@ -618,7 +618,7 @@ window.onload = async function(){
             unitDivElement.appendChild(maskImageElement);
 
             unitDivElement.addEventListener("click", function(){
-                console.log(unit);
+                window.alert(unit);
             });
 
             factionDivElement.appendChild(unitDivElement);
