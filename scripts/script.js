@@ -602,11 +602,17 @@ function getSchemaIndexes(id){
     return Object.values(Schemas[id]);
 }
 
+var selectedUnit;
+var hoveredUnit;
+
 window.onload = async function(){
     let landUnitsContent = await GetAndParseResource(landUnitsPath);
     let mainUnitsContent = await GetAndParseResource(mainUnitsPath);
     let unitNamesContent = await GetAndParseResource(unitNamesPath);
     let unitVariantsContent = await GetAndParseResource(unitVariantsPath);
+
+    let selectedScreenName = document.getElementById("selected_screen_name");
+    let selectedChargeBonus = document.getElementById("selected_charge_bonus");
 
     let unitsDivElement = document.getElementById("units");
     let factions = await loadFactions();
@@ -641,9 +647,6 @@ window.onload = async function(){
                 let unitDivElement = document.createElement("div");
                 let iconImageElement = document.createElement("img");
                 let maskImageElement = document.createElement("img");
-                
-                console.log(unit.imagePath);
-                console.log(unit.maskPath);
 
                 iconImageElement.src = unit.imagePath;
                 iconImageElement.alt = unit.screen_name;
@@ -658,8 +661,26 @@ window.onload = async function(){
                 unitDivElement.appendChild(maskImageElement);
 
                 unitDivElement.addEventListener("click", function(){
-                    window.alert(JSON.stringify(unit));
-                    console.log(unit);
+                    selectedUnit = unit;
+                    selectedScreenName.innerText = unit.screen_name;
+                    selectedChargeBonus.innerText = "Charge bonus: " + unit.charge_bonus;
+                });
+
+                unitDivElement.addEventListener("mouseenter", function(){
+                    if(selectedUnit && selectedUnit.key != unit.key){
+                        hoveredUnit = unit;
+
+                        let diff = selectedUnit.charge_bonus - unit.charge_bonus;
+
+                        if(diff > 0){
+                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:green;\">(+" + diff + ")</span> compared to " + unit.screen_name;
+                        } else if (diff == 0){
+                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:orange;\">(" + diff + ")</span> compared to " + unit.screen_name;
+                        } else {
+                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:red;\">(" + diff + ")</span> compared to " + unit.screen_name;
+                        }
+                        
+                    }
                 });
 
                 subcategoryDivElement.appendChild(unitDivElement);
