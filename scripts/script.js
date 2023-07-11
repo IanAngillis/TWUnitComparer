@@ -1,4 +1,3 @@
-"use strict"
 
 // Constants
 // This is not even necessary
@@ -61,6 +60,7 @@ const factionPath = "resources\\db\\factions_tables\\factions.tsv";
 const factionToUnitPath = "resources\\db\\units_custom_battle_permissions_tables\\units_custom_battle_permissions.tsv";
 const landUnitsPath = "resources\\db\\land_units_tables\\land_units.tsv";
 const mainUnitsPath = "resources\\db\\main_units_tables\\main_units.tsv";
+const unitVariantsPath = "resources\\db\\unit_variants_tables\\unit_variants.tsv"
 const unitNamesPath = "resources\\text\\db\\land_units.loc.tsv";
 const maskFolder = "resources\\ui\\units\\mask\\";
 const iconFolder = "resources\\ui\\units\\icons\\";
@@ -331,10 +331,11 @@ class Unit{
             this.audio_language = audio_language;
             this.audio_vo_actor_group = audio_vo_actor_group;
             this.screen_name = screen_name;
+    }
 
-            let lowercaseKey = this.key.toLowerCase().replace("mer_", "").replace("sar_", "");
-            this.imagePath = iconFolder + lowercaseKey + ".png";
-            this.maskPath = maskFolder + lowercaseKey + "_mask_1.png";
+    addUnitCard(unitCard){
+        this.imagePath = iconFolder + unitCard + ".png";
+        this.maskPath = maskFolder + unitCard + "_mask_1.png";
     }
 }
 
@@ -568,7 +569,7 @@ async function loadFactions(){
 
         factions.push(faction);
     });
-    return factions.filter(faction => faction.mp_available && MP_FACTIONS.includes(faction.screen_name));
+    return factions.filter(faction => faction.mp_available && MP_FACTIONS.includes(faction.screen_name) && faction.key.startsWith("rom_"));
 }
 
 async function loadUnits(faction, landUnitsContent, mainUnitsContent, unitNamesContent){
@@ -605,12 +606,16 @@ window.onload = async function(){
     let landUnitsContent = await GetAndParseResource(landUnitsPath);
     let mainUnitsContent = await GetAndParseResource(mainUnitsPath);
     let unitNamesContent = await GetAndParseResource(unitNamesPath);
+    let unitVariantsContent = await GetAndParseResource(unitVariantsPath);
+
     let unitsDivElement = document.getElementById("units");
     let factions = await loadFactions();
 
-    factions.forEach(faction => {
-        loadUnits(faction, landUnitsContent, mainUnitsContent, unitNamesContent);
+    console.log("factions loaded");
 
+    factions.forEach(async faction => {
+        await loadUnits(faction, landUnitsContent, mainUnitsContent, unitNamesContent);
+        
         let factionDivElement = document.createElement("div");
         let h1Element = document.createElement("h1");
         h1Element.innerText = faction.screen_name;
@@ -620,7 +625,6 @@ window.onload = async function(){
         Object.keys(CLASSES).forEach(cl => {
             let units = faction.units.filter(unit => unit.unit_class == cl);
             units.sort((u1, u2) => {return u1.multiplayer_cost - u2.multiplayer_cost});
-            console.log(units);
 
             if(units.length == 0) return;
             let subcategoryDivElement = document.createElement("div");
@@ -630,10 +634,16 @@ window.onload = async function(){
             subcategoryDivElement.appendChild(subcategoryH3Element);
 
             units.forEach(unit => {
+                let unitcard = unitVariantsContent.find(uv => uv[1] == unit.unit)[6].toLowerCase();
+
+                unit.addUnitCard(unitcard);
+
                 let unitDivElement = document.createElement("div");
                 let iconImageElement = document.createElement("img");
                 let maskImageElement = document.createElement("img");
-            
+                
+                console.log(unit.imagePath);
+                console.log(unit.maskPath);
 
                 iconImageElement.src = unit.imagePath;
                 iconImageElement.alt = unit.screen_name;
@@ -649,6 +659,7 @@ window.onload = async function(){
 
                 unitDivElement.addEventListener("click", function(){
                     window.alert(JSON.stringify(unit));
+                    console.log(unit);
                 });
 
                 subcategoryDivElement.appendChild(unitDivElement);
@@ -662,7 +673,5 @@ window.onload = async function(){
         unitsDivElement.appendChild(document.createElement("br"));
     });
 
-    console.log(factions);
-    // let ress = await getResource("resources\\ui\\units\\icons\\");
-    // console.log(ress);
+    console.log("done");
 }
