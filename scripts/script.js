@@ -618,7 +618,9 @@ window.onload = async function(){
         factionDivElement.appendChild(h1Element);
 
         Object.keys(CLASSES).forEach(cl => {
-            let units = faction.units.filter(unit => unit.unit_class == cl).sort((u1, u2) => u1.multiplayer_cost < u2.multiplayer_cost);
+            let units = faction.units.filter(unit => unit.unit_class == cl);
+            units.sort((u1, u2) => {return u1.multiplayer_cost - u2.multiplayer_cost});
+            console.log(units);
 
             if(units.length == 0) return;
             let subcategoryDivElement = document.createElement("div");
@@ -634,11 +636,11 @@ window.onload = async function(){
             
 
                 iconImageElement.src = unit.imagePath;
-                iconImageElement.alt = "Original image";
+                iconImageElement.alt = unit.screen_name;
                 iconImageElement.classList.add("image");
 
                 maskImageElement.src = unit.maskPath;
-                maskImageElement.alt = "Red mask";
+                maskImageElement.alt = unit.screen_name;
                 maskImageElement.classList.add("mask");
 
                 unitDivElement.classList.add("unit_card");
