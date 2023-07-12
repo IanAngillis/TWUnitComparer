@@ -71,11 +71,12 @@ const factionPath = "resources\\db\\factions_tables\\factions.tsv";
 const factionToUnitPath = "resources\\db\\units_custom_battle_permissions_tables\\units_custom_battle_permissions.tsv";
 const landUnitsPath = "resources\\db\\land_units_tables\\land_units.tsv";
 const mainUnitsPath = "resources\\db\\main_units_tables\\main_units.tsv";
-const unitVariantsPath = "resources\\db\\unit_variants_tables\\unit_variants.tsv"
+const unitVariantsPath = "resources\\db\\unit_variants_tables\\unit_variants.tsv";
 const unitNamesPath = "resources\\text\\db\\land_units.loc.tsv";
-const meleeWeaponsPath = "resources\\db\\melee_weapons_tables\\melee_weapons.tsv"
-const missileWeaponsToProjectilesPath = "resources\\db\\missile_weapons_to_projectiles_tables\\missile_weapons_to_projectiles.tsv"
-const projectilesPath = "resources\\db\\projectiles_tables\\projectiles.tsv"
+const meleeWeaponsPath = "resources\\db\\melee_weapons_tables\\melee_weapons.tsv";
+const missileWeaponsToProjectilesPath = "resources\\db\\missile_weapons_to_projectiles_tables\\missile_weapons_to_projectiles.tsv";
+const projectilesPath = "resources\\db\\projectiles_tables\\projectiles.tsv";
+const battleEntitiesPath = "resources\\db\\battle_entities_tables\\battle_entities.tsv";
 
 const maskFolder = "resources\\ui\\units\\mask\\";
 const iconFolder = "resources\\ui\\units\\icons\\";
@@ -84,7 +85,7 @@ const landUnitSchema = "land_units";
 const mainUnitSchema = "main_units";
 const meleeWeaponSchema = "melee_weapons";
 const projectilesSchema = "projectiles";
-
+const battleEntitiesSchema = "battle_entities";
 // Dict of dicts mapping index of attribute
 const Schemas = {
     "faction": {
@@ -231,6 +232,33 @@ const Schemas = {
         "can_damage_buildings": 31,
         "contact_stat_effect": 32,
         "is_grapple": 33
+    },
+    "battle_entities": {
+        "key": 0,
+        "type": 1,
+        "walk_speed": 2,
+        "run_speed": 3,
+        "acceleration": 4,
+        "deceleration": 5,
+        "charge_speed": 6,
+        "crawl_speed": 7,
+        "charge_distance_commence_run": 8,
+        "charge_distance_adopt_charge_pose": 9,
+        "charge_distance_pick_target": 10,
+        "radius": 11,
+        "shape": 12,
+        "radii_ratio": 13,
+        "mass": 14,
+        "height": 15,
+        "fire_arc_close": 16,
+        "fire_arc_loose": 17,
+        "turn_speed": 18,
+        "hit_points": 19,
+        "allow_turn_to_move_anim": 20,
+        "allow_static_turn_anim": 21,
+        "tracking_threshold": 22,
+        "min_turning_speed": 23,
+        "display_model_offset_z": 24
     }
 }
 
@@ -413,6 +441,10 @@ class Unit{
     addMissileWeapon(missileWeapon){
         this.missileWeapon = missileWeapon;
     }
+    
+    addEntity(entity){
+        this.entity = entity;
+    }
 }
 
 class Faction{
@@ -457,13 +489,13 @@ class MeleeWeapon{
         audio_material
     ){
         this.key = key;
-        this.armour_penetrating = armour_penetrating;
-        this.armour_piercing = armour_piercing;
-        this.bonus_v_cavalry = bonus_v_cavalry; 
-        this.bonus_v_elephants = bonus_v_elephants; 
-        this.bonus_v_infantry = bonus_v_infantry;
-        this.damage = damage;
-        this.ap_damage = ap_damage; 
+        this.armour_penetrating = parseInt(armour_penetrating);
+        this.armour_piercing = parseInt(armour_piercing);
+        this.bonus_v_cavalry = parseInt(bonus_v_cavalry); 
+        this.bonus_v_elephants = parseInt(bonus_v_elephants); 
+        this.bonus_v_infantry = parseInt(bonus_v_infantry);
+        this.damage = parseInt(damage);
+        this.ap_damage = parseInt(ap_damage); 
         this.first_strike = first_strike; 
         this.shield_piercing = shield_piercing;
         this.weapon_length = weapon_length;
@@ -543,6 +575,60 @@ class MissileWeapon{
         this.can_damage_buildings = can_damage_buildings;
         this.contact_stat_effect = contact_stat_effect;
         this.is_grapple = is_grapple;
+    }
+}
+
+class Entity{
+    constructor(key,
+        type,
+        walk_speed,
+        run_speed,
+        acceleration,
+        deceleration,
+        charge_speed,
+        crawl_speed,
+        charge_distance_commence_run,
+        charge_distance_adopt_charge_pose,
+        charge_distance_pick_target,
+        radius,
+        shape,
+        radii_ratio,
+        mass,
+        height,
+        fire_arc_close,
+        fire_arc_loose,
+        turn_speed,
+        hit_points,
+        allow_turn_to_move_anim,
+        allow_static_turn_anim,
+        tracking_threshold,
+        min_turning_speed,
+        display_model_offset_z){
+            this.key = key;
+            this.type = type;
+            this.walk_speed = walk_speed;
+            this.run_speed = run_speed;
+            this.acceleration = acceleration;
+            this.deceleration = deceleration;
+            this.charge_speed = charge_speed;
+            this.crawl_speed = crawl_speed;
+            this.charge_distance_commence_run = charge_distance_commence_run;
+            this.charge_distance_adopt_charge_pose = charge_distance_adopt_charge_pose;
+            this.charge_distance_pick_target = charge_distance_pick_target;
+            this.radius = radius;
+            this.shape = shape;
+            this.radii_ratio = radii_ratio;
+            this.mass = parseInt(mass);
+            this.height = height;
+            this.fire_arc_close = fire_arc_close;
+            this.fire_arc_loose = fire_arc_loose;
+            this.turn_speed = turn_speed;
+            this.hit_points = parseInt(hit_points);
+            this.allow_turn_to_move_anim = allow_turn_to_move_anim;
+            this.allow_static_turn_anim = allow_static_turn_anim;
+            this.tracking_threshold = tracking_threshold;
+            this.min_turning_speed = min_turning_speed;
+            this.display_model_offset_z = display_model_offset_z;
     }
 }
 
@@ -829,6 +915,58 @@ function createMissileWeapon(key,
         is_grapple);
 }
 
+function createEntity(key,
+        type,
+        walk_speed,
+        run_speed,
+        acceleration,
+        deceleration,
+        charge_speed,
+        crawl_speed,
+        charge_distance_commence_run,
+        charge_distance_adopt_charge_pose,
+        charge_distance_pick_target,
+        radius,
+        shape,
+        radii_ratio,
+        mass,
+        height,
+        fire_arc_close,
+        fire_arc_loose,
+        turn_speed,
+        hit_points,
+        allow_turn_to_move_anim,
+        allow_static_turn_anim,
+        tracking_threshold,
+        min_turning_speed,
+        display_model_offset_z){
+    return new Entity(key,
+        type,
+        walk_speed,
+        run_speed,
+        acceleration,
+        deceleration,
+        charge_speed,
+        crawl_speed,
+        charge_distance_commence_run,
+        charge_distance_adopt_charge_pose,
+        charge_distance_pick_target,
+        radius,
+        shape,
+        radii_ratio,
+        mass,
+        height,
+        fire_arc_close,
+        fire_arc_loose,
+        turn_speed,
+        hit_points,
+        allow_turn_to_move_anim,
+        allow_static_turn_anim,
+        tracking_threshold,
+        min_turning_speed,
+        display_model_offset_z);
+}
+
 async function loadFactions(){
     let factions = [];
 
@@ -893,14 +1031,24 @@ window.onload = async function(){
     let meleeWeaponContent = await GetAndParseResource(meleeWeaponsPath);
     let missileWeaponsToProjectilesContent = await GetAndParseResource(missileWeaponsToProjectilesPath);
     let projectilesContent = await GetAndParseResource(projectilesPath);
+    let battleEntitiesContent = await GetAndParseResource(battleEntitiesPath);
 
     let selectedScreenName = document.getElementById("selected_screen_name");
+    let selectedArmour = document.getElementById("selected_armour");
+    let selectedMorale = document.getElementById("selected_morale");
+    let selectedSpeed = document.getElementById("selected_speed");
+    let selectedMeleeAttack = document.getElementById("selected_melee_attack");
+    let selectedMeleeDefence = document.getElementById("selected_melee_defence");
+    let selectedWeaponStrength = document.getElementById("selected_weapon_strength");
+    let selectedMissileStrength = document.getElementById("selected_missile_strength");
+    let selectedRange = document.getElementById("selected_range")
+    let selectedAmmunication = document.getElementById("selected_ammunication");
     let selectedChargeBonus = document.getElementById("selected_charge_bonus");
+    let selectedHealth = document.getElementById("selected_health");
+    let selectedMass = document.getElementById("selected_mass");
 
     let unitsDivElement = document.getElementById("units");
     let factions = await loadFactions();
-
-    console.log("factions loaded");
 
     factions.forEach(async faction => {
         await loadUnits(faction, landUnitsContent, mainUnitsContent, unitNamesContent);
@@ -943,12 +1091,13 @@ window.onload = async function(){
                     let missileWeapon = createMissileWeapon.apply(this, missileWeaponInfo);
                     unit.addMissileWeapon(missileWeapon);
                 }
-                
-
-                //Sort health
 
                 //Sort speed
+                let entityForUnit = battleEntitiesContent.find(be => be[0] == unit.man_entity);
+                let entityInfo = getSchemaIndexes(battleEntitiesSchema).map(idx => entityForUnit[idx]);
 
+                let entity = createEntity.apply(this, entityInfo);
+                unit.addEntity(entity);
 
                 let unitDivElement = document.createElement("div");
                 let iconImageElement = document.createElement("img");
@@ -970,21 +1119,94 @@ window.onload = async function(){
                     selectedUnit = unit;
                     selectedScreenName.innerText = "Selected: " + unit.screen_name;
                     selectedChargeBonus.innerText = "Charge bonus: " + unit.charge_bonus;
+                    selectedMeleeAttack.innerText = "Melee Attack: " + unit.melee_attack;
+                    selectedMeleeDefence.innerText = "Melee Defence: " + unit.melee_defence;
+                    selectedSpeed.innerText = "Speed: " + (parseFloat(unit.entity.run_speed) * 10);
+                    selectedWeaponStrength.innerText = "Weapon strength: " + (parseInt(unit.meleeWeapon.damage) + parseInt(unit.meleeWeapon.ap_damage)) + " with base " + unit.meleeWeapon.damage + " and AP " + unit.meleeWeapon.ap_damage;
+                    selectedMorale.innerText = "Morale: " + unit.morale;
+                    selectedMass.innerText = "Mass: " + parseInt(unit.entity.mass);
+                    selectedHealth.innerText = "Health: " + (parseInt(unit.entity.hit_points) + parseInt(unit.bonus_hit_points));
+                    
+                    if(unit.missileWeapon){
+                        selectedRange.style.visibility  = "visible";
+                        selectedMissileStrength.style.visibility  = "visible";
+                        selectedAmmunication.style.visibility  = "visible";
+
+
+                    } else {
+                        selectedRange.style.visibility  = "hidden";
+                        selectedMissileStrength.style.visibility  = "hidden";
+                        selectedAmmunication.style.visibility  = "hidden";
+                    }
                 });
 
                 unitDivElement.addEventListener("mouseenter", function(){
                     if(selectedUnit && selectedUnit.key != unit.key){
                         hoveredUnit = unit;
+                        selectedScreenName.innerText = "Selected: " + selectedUnit.screen_name + " compared to " + unit.screen_name;
 
-                        let diff = selectedUnit.charge_bonus - unit.charge_bonus;
+                        let chargeDiff = selectedUnit.charge_bonus - unit.charge_bonus;
 
-                        if(diff > 0){
-                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:green;\">(+" + diff + ")</span> compared to " + unit.screen_name;
-                        } else if (diff == 0){
-                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:orange;\">(" + diff + ")</span> compared to " + unit.screen_name;
+                        if(chargeDiff > 0){
+                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:green;\">(+" + chargeDiff + ")</span> compared to " + unit.screen_name;
+                        } else if (chargeDiff == 0){
+                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:orange;\">(" + chargeDiff + ")</span> compared to " + unit.screen_name;
                         } else {
-                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:red;\">(" + diff + ")</span> compared to " + unit.screen_name;
+                            selectedChargeBonus.innerHTML = "Charge bonus: " + selectedUnit.charge_bonus + " <span style=\"color:red;\">(" + chargeDiff + ")</span> compared to " + unit.screen_name;
                         }
+
+                        let speedDiff = (parseFloat(selectedUnit.entity.run_speed) * 10) - (parseFloat(unit.entity.run_speed) * 10);
+
+                        if(speedDiff > 0){
+                            selectedSpeed.innerHTML = "Speed: " + (parseFloat(selectedUnit.entity.run_speed) * 10) + " <span style=\"color:green;\">(+" + speedDiff + ")</span> compared to " + unit.screen_name;
+                        } else if (speedDiff == 0){
+                            selectedSpeed.innerHTML = "Speed: " + (parseFloat(selectedUnit.entity.run_speed) * 10) + " <span style=\"color:orange;\">(" + speedDiff + ")</span> compared to " + unit.screen_name;
+                        } else {
+                            selectedSpeed.innerHTML = "Speed: " + (parseFloat(selectedUnit.entity.run_speed) * 10) + " <span style=\"color:red;\">(" + speedDiff + ")</span> compared to " + unit.screen_name;
+                        }
+
+                        let maDiff = selectedUnit.melee_attack - unit.melee_attack;
+
+                        if(maDiff > 0){
+                            selectedMeleeAttack.innerHTML = "Melee Attack: " + selectedUnit.melee_attack + " <span style=\"color:green;\">(+" + maDiff + ")</span> compared to " + unit.screen_name;
+                        } else if (maDiff == 0){
+                            selectedMeleeAttack.innerHTML = "Melee Attack: " + selectedUnit.melee_attack + " <span style=\"color:orange;\">(" + maDiff + ")</span> compared to " + unit.screen_name;
+                        } else {
+                            selectedMeleeAttack.innerHTML = "Melee Attack: " + selectedUnit.melee_attack + " <span style=\"color:red;\">(" + maDiff + ")</span> compared to " + unit.screen_name;
+                        }
+
+
+                        let mdDiff = selectedUnit.melee_attack - unit.melee_attack;
+
+                        if(mdDiff > 0){
+                            selectedMeleeDefence.innerHTML = "Melee Defence: " + selectedUnit.melee_defence + " <span style=\"color:green;\">(+" + mdDiff + ")</span> compared to " + unit.screen_name;
+                        } else if (mdDiff == 0){
+                            selectedMeleeDefence.innerHTML = "Melee Defence: " + selectedUnit.melee_defence + " <span style=\"color:orange;\">(" + mdDiff + ")</span> compared to " + unit.screen_name;
+                        } else {
+                            selectedMeleeDefence.innerHTML = "Melee Defence: " + selectedUnit.melee_defence + " <span style=\"color:red;\">(" + mdDiff + ")</span> compared to " + unit.screen_name;
+                        }
+
+                        let moraleDiff = selectedUnit.morale - unit.morale;
+
+                        if(moraleDiff > 0){
+                            selectedMorale.innerHTML = "Morale: " + selectedUnit.morale + " <span style=\"color:green;\">(+" + moraleDiff + ")</span> compared to " + unit.screen_name;
+                        } else if (moraleDiff == 0){
+                            selectedMorale.innerHTML = "Morale: " + selectedUnit.morale + " <span style=\"color:orange;\">(" + moraleDiff + ")</span> compared to " + unit.screen_name;
+                        } else {
+                            selectedMorale.innerHTML = "Morale: " + selectedUnit.morale + " <span style=\"color:red;\">(" + moraleDiff + ")</span> compared to " + unit.screen_name;
+                        }
+
+                        let massDiff = selectedUnit.entity.mass - unit.entity.mass;
+
+                        if(massDiff > 0){
+                            selectedMass.innerHTML = "Mass: " + selectedUnit.entity.mass + " <span style=\"color:green;\">(+" + massDiff + ")</span> compared to " + unit.screen_name;
+                        } else if (massDiff == 0){
+                            selectedMass.innerHTML = "Mass: " + selectedUnit.entity.mass + " <span style=\"color:orange;\">(" + massDiff + ")</span> compared to " + unit.screen_name;
+                        } else {
+                            selectedMass.innerHTML = "Mass: " + selectedUnit.entity.mass + " <span style=\"color:red;\">(" + massDiff + ")</span> compared to " + unit.screen_name;
+                        }
+
+                        
                         
                     }
                 });
@@ -1000,6 +1222,4 @@ window.onload = async function(){
         unitsDivElement.appendChild(document.createElement("br"));
     });
 
-    console.log(factions);
-    console.log("done");
 }
