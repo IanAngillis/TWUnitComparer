@@ -1073,7 +1073,16 @@ window.onload = async function(){
     let selectedMPCost = document.getElementById("selected_mp_cost");
 
     let unitsDivElement = document.getElementById("units");
+    let faction1Element = document.getElementById("faction1");
+    let faction2Element = document.getElementById("faction2");
+
+    let faction1unitsElement = document.getElementById("faction1_units");
+    let faction2unitsElement = document.getElementById("faction2_units");
+
     let factions = await loadFactions();
+
+    fillWithFactionFlags(faction1Element, faction1unitsElement, factions);
+    fillWithFactionFlags(faction2Element,faction2unitsElement, factions);
 
     factions.forEach(async faction => {
         await loadUnits(faction, landUnitsContent, mainUnitsContent, unitNamesContent);
@@ -1311,5 +1320,24 @@ window.onload = async function(){
         unitsDivElement.appendChild(factionDivElement);
         unitsDivElement.appendChild(document.createElement("br"));
     });
+}
 
+
+function fillWithFactionFlags(element, unitElement, factions){
+    factions.forEach(faction => {
+        let factionFlagImgElement = document.createElement("img");
+        factionFlagImgElement.src = faction.flagPath;
+        factionFlagImgElement.classList.add("factionimg");
+
+        factionFlagImgElement.addEventListener("click", () => {
+            fillWithFactionUnits(unitElement, faction);
+        });
+
+        element.appendChild(factionFlagImgElement);
+    });
+}
+
+function fillWithFactionUnits(element, faction){
+    element.innerHTML = "";
+    console.log(faction.screen_name);
 }
