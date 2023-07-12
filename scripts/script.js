@@ -1,4 +1,14 @@
-
+/**
+ * Right, here are all the ideas that still need be realised, and probably never will:
+ * 
+ * 1. Sort remaining data: missile weapon, melee weapon, health, speed
+ * 2. Give proper breakdown of all the relevant stats with the compare stuff
+ * 3. Sort the generals and remove duplicates - there is a table for this || Add faction icons
+ * 4. Compare abilities abilities
+ * 5. Army builder
+ * 6. Make max values expressive and display in which quadrant the unit sits (indicated by bar in game)
+ * 
+ */
 // Constants
 // This is not even necessary
 const MP_FACTIONS = [
@@ -56,17 +66,24 @@ const CLASSES = {
 
 const lineSeperator = "\n";
 const attributeSeperator = "\t";
+
 const factionPath = "resources\\db\\factions_tables\\factions.tsv";
 const factionToUnitPath = "resources\\db\\units_custom_battle_permissions_tables\\units_custom_battle_permissions.tsv";
 const landUnitsPath = "resources\\db\\land_units_tables\\land_units.tsv";
 const mainUnitsPath = "resources\\db\\main_units_tables\\main_units.tsv";
 const unitVariantsPath = "resources\\db\\unit_variants_tables\\unit_variants.tsv"
 const unitNamesPath = "resources\\text\\db\\land_units.loc.tsv";
+const meleeWeaponsPath = "resources\\db\\melee_weapons_tables\\melee_weapons.tsv"
+const missileWeaponsToProjectilesPath = "resources\\db\\missile_weapons_to_projectiles_tables\\missile_weapons_to_projectiles.tsv"
+const projectilesPath = "resources\\db\\projectiles_tables\\projectiles.tsv"
+
 const maskFolder = "resources\\ui\\units\\mask\\";
 const iconFolder = "resources\\ui\\units\\icons\\";
 const factionSchema = "faction";
 const landUnitSchema = "land_units";
 const mainUnitSchema = "main_units";
+const meleeWeaponSchema = "melee_weapons";
+const projectilesSchema = "projectiles";
 
 // Dict of dicts mapping index of attribute
 const Schemas = {
@@ -163,6 +180,57 @@ const Schemas = {
         "region_unit_resource_requirement": 27,
         "audio_language": 28,
         "audio_vo_actor_group:": 29
+    },
+    "melee_weapons": {
+        "key": 0,
+        "armour_penetrating": 1,
+        "armour_piercing": 2, 
+        "bonus_v_cavalry": 3, 
+        "bonus_v_elephants": 4, 
+        "bonus_v_infantry": 5,
+        "damage": 6,
+        "ap_damage": 7, 
+        "first_strike": 8, 
+        "shield_piercing": 9,
+        "weapon_length": 10,
+        "melee_weapon_type": 11,
+        "audio_material": 12
+    },
+    "projectiles": {
+        "key": 0,
+        "category": 1,
+        "shot_type": 2,
+        "explosion_type": 3,
+        "spin_type": 4,
+        "projectile_number": 5,
+        "trajectory_sight": 6,
+        "effective_range": 7,
+        "minimum_range": 8,
+        "max_elevation": 9,
+        "muzzle_velocity": 10,
+        "marksmanship_bonus": 11,
+        "spread": 12,
+        "damage": 13,
+        "ap_damage": 14,
+        "penetration": 15,
+        "incendiary": 16,
+        "can_bounce": 17,
+        "high_air_resistance": 18,
+        "collision_radius": 19,
+        "base_reload_time": 20,
+        "below_waterline_damage_modifier": 21,
+        "calibration_distance": 22,
+        "calibration_area": 23,
+        "bonus_v_infantry": 24,
+        "bonus_v_cavalry": 25,
+        "bonus_v_elephant": 26,
+        "projectile_display": 27,
+        "overhead_stat_effect": 28,
+        "projectile_audio": 29,
+        "shockwave_radius": 30,
+        "can_damage_buildings": 31,
+        "contact_stat_effect": 32,
+        "is_grapple": 33
     }
 }
 
@@ -337,6 +405,14 @@ class Unit{
         this.imagePath = iconFolder + unitCard + ".png";
         this.maskPath = maskFolder + unitCard + "_mask_1.png";
     }
+
+    addMeleeWeapon(meleeWeapon){
+        this.meleeWeapon = meleeWeapon;
+    }
+
+    addMissileWeapon(missileWeapon){
+        this.missileWeapon = missileWeapon;
+    }
 }
 
 class Faction{
@@ -361,6 +437,112 @@ class Faction{
 
     addUnits(units){
         this.units = units;
+    }
+}
+
+class MeleeWeapon{
+    constructor(
+        key,
+        armour_penetrating,
+        armour_piercing, 
+        bonus_v_cavalry, 
+        bonus_v_elephants, 
+        bonus_v_infantry,
+        damage,
+        ap_damage, 
+        first_strike, 
+        shield_piercing,
+        weapon_length,
+        melee_weapon_type,
+        audio_material
+    ){
+        this.key = key;
+        this.armour_penetrating = armour_penetrating;
+        this.armour_piercing = armour_piercing;
+        this.bonus_v_cavalry = bonus_v_cavalry; 
+        this.bonus_v_elephants = bonus_v_elephants; 
+        this.bonus_v_infantry = bonus_v_infantry;
+        this.damage = damage;
+        this.ap_damage = ap_damage; 
+        this.first_strike = first_strike; 
+        this.shield_piercing = shield_piercing;
+        this.weapon_length = weapon_length;
+        this.melee_weapon_type = melee_weapon_type;
+        this.audio_material = audio_material;
+    }
+}
+
+class MissileWeapon{
+    constructor(
+        key,
+        category,
+        shot_type,
+        explosion_type,
+        spin_type,
+        projectile_number,
+        trajectory_sight,
+        effective_range,
+        minimum_range,
+        max_elevation,
+        muzzle_velocity,
+        marksmanship_bonus,
+        spread,
+        damage,
+        ap_damage,
+        penetration,
+        incendiary,
+        can_bounce,
+        high_air_resistance,
+        collision_radius,
+        base_reload_time,
+        below_waterline_damage_modifier,
+        calibration_distance,
+        calibration_area,
+        bonus_v_infantry,
+        bonus_v_cavalry,
+        bonus_v_elephant,
+        projectile_display,
+        overhead_stat_effect,
+        projectile_audio,
+        shockwave_radius,
+        can_damage_buildings,
+        contact_stat_effect,
+        is_grapple
+    ){
+        this.key = key;
+        this.category = category;
+        this.shot_type = shot_type;
+        this.explosion_type = explosion_type;
+        this.spin_type = spin_type;
+        this.projectile_number = projectile_number;
+        this.trajectory_sight = trajectory_sight;
+        this.effective_range = effective_range;
+        this.minimum_range = minimum_range;
+        this.max_elevation = max_elevation;
+        this.muzzle_velocity = muzzle_velocity;
+        this.marksmanship_bonus = marksmanship_bonus;
+        this.spread = spread;
+        this.damage = damage;
+        this.ap_damage = ap_damage;
+        this.penetration = penetration;
+        this.incendiary = incendiary;
+        this.can_bounce = can_bounce;
+        this.high_air_resistance = high_air_resistance;
+        this.collision_radius = collision_radius;
+        this.base_reload_time = base_reload_time;
+        this.below_waterline_damage_modifier = below_waterline_damage_modifier;
+        this.calibration_distance = calibration_distance;
+        this.calibration_area = calibration_area;
+        this.bonus_v_infantry = bonus_v_infantry;
+        this.bonus_v_cavalry = bonus_v_cavalry;
+        this.bonus_v_elephant = bonus_v_elephant;
+        this.projectile_display = projectile_display;
+        this.overhead_stat_effect = overhead_stat_effect;
+        this.projectile_audio = projectile_audio;
+        this.shockwave_radius = shockwave_radius;
+        this.can_damage_buildings = can_damage_buildings;
+        this.contact_stat_effect = contact_stat_effect;
+        this.is_grapple = is_grapple;
     }
 }
 
@@ -549,6 +731,104 @@ function createUnit(key,
         screen_name);
 }
 
+function createMeleeWeapon(key,
+    armour_penetrating,
+    armour_piercing, 
+    bonus_v_cavalry, 
+    bonus_v_elephants, 
+    bonus_v_infantry,
+    damage,
+    ap_damage, 
+    first_strike, 
+    shield_piercing,
+    weapon_length,
+    melee_weapon_type,
+    audio_material){
+    return new MeleeWeapon(key,
+        armour_penetrating,
+        armour_piercing, 
+        bonus_v_cavalry, 
+        bonus_v_elephants, 
+        bonus_v_infantry,
+        damage,
+        ap_damage, 
+        first_strike, 
+        shield_piercing,
+        weapon_length,
+        melee_weapon_type,
+        audio_material)
+}
+
+function createMissileWeapon(key,
+    category,
+    shot_type,
+    explosion_type,
+    spin_type,
+    projectile_number,
+    trajectory_sight,
+    effective_range,
+    minimum_range,
+    max_elevation,
+    muzzle_velocity,
+    marksmanship_bonus,
+    spread,
+    damage,
+    ap_damage,
+    penetration,
+    incendiary,
+    can_bounce,
+    high_air_resistance,
+    collision_radius,
+    base_reload_time,
+    below_waterline_damage_modifier,
+    calibration_distance,
+    calibration_area,
+    bonus_v_infantry,
+    bonus_v_cavalry,
+    bonus_v_elephant,
+    projectile_display,
+    overhead_stat_effect,
+    projectile_audio,
+    shockwave_radius,
+    can_damage_buildings,
+    contact_stat_effect,
+    is_grapple){
+    return new MissileWeapon(key,
+        category,
+        shot_type,
+        explosion_type,
+        spin_type,
+        projectile_number,
+        trajectory_sight,
+        effective_range,
+        minimum_range,
+        max_elevation,
+        muzzle_velocity,
+        marksmanship_bonus,
+        spread,
+        damage,
+        ap_damage,
+        penetration,
+        incendiary,
+        can_bounce,
+        high_air_resistance,
+        collision_radius,
+        base_reload_time,
+        below_waterline_damage_modifier,
+        calibration_distance,
+        calibration_area,
+        bonus_v_infantry,
+        bonus_v_cavalry,
+        bonus_v_elephant,
+        projectile_display,
+        overhead_stat_effect,
+        projectile_audio,
+        shockwave_radius,
+        can_damage_buildings,
+        contact_stat_effect,
+        is_grapple);
+}
+
 async function loadFactions(){
     let factions = [];
 
@@ -610,6 +890,9 @@ window.onload = async function(){
     let mainUnitsContent = await GetAndParseResource(mainUnitsPath);
     let unitNamesContent = await GetAndParseResource(unitNamesPath);
     let unitVariantsContent = await GetAndParseResource(unitVariantsPath);
+    let meleeWeaponContent = await GetAndParseResource(meleeWeaponsPath);
+    let missileWeaponsToProjectilesContent = await GetAndParseResource(missileWeaponsToProjectilesPath);
+    let projectilesContent = await GetAndParseResource(projectilesPath);
 
     let selectedScreenName = document.getElementById("selected_screen_name");
     let selectedChargeBonus = document.getElementById("selected_charge_bonus");
@@ -641,8 +924,31 @@ window.onload = async function(){
 
             units.forEach(unit => {
                 let unitcard = unitVariantsContent.find(uv => uv[1] == unit.unit)[6].toLowerCase();
-
                 unit.addUnitCard(unitcard);
+
+                //Sort melee weapon
+                let meleeWeaponForUnit = meleeWeaponContent.find(mw => mw[0] == unit.primary_melee_weapon);
+                let meleeWeaponInfo = getSchemaIndexes(meleeWeaponSchema).map(idx => meleeWeaponForUnit[idx]);
+
+                let meleeWeapon = createMeleeWeapon.apply(this, meleeWeaponInfo);
+                unit.addMeleeWeapon(meleeWeapon);
+
+                //Sort missile weapon
+                let projectile = missileWeaponsToProjectilesContent.find(mwtp => mwtp[0] == unit.primary_missile_weapon);
+                if(projectile && projectile[0] != ''){
+                    
+                    let missileWeaponForUnit = projectilesContent.find(mw => mw[0] == projectile[1]);
+                    let missileWeaponInfo = getSchemaIndexes(projectilesSchema).map(idx => missileWeaponForUnit[idx]);
+    
+                    let missileWeapon = createMissileWeapon.apply(this, missileWeaponInfo);
+                    unit.addMissileWeapon(missileWeapon);
+                }
+                
+
+                //Sort health
+
+                //Sort speed
+
 
                 let unitDivElement = document.createElement("div");
                 let iconImageElement = document.createElement("img");
@@ -662,7 +968,7 @@ window.onload = async function(){
 
                 unitDivElement.addEventListener("click", function(){
                     selectedUnit = unit;
-                    selectedScreenName.innerText = unit.screen_name;
+                    selectedScreenName.innerText = "Selected: " + unit.screen_name;
                     selectedChargeBonus.innerText = "Charge bonus: " + unit.charge_bonus;
                 });
 
@@ -694,5 +1000,6 @@ window.onload = async function(){
         unitsDivElement.appendChild(document.createElement("br"));
     });
 
+    console.log(factions);
     console.log("done");
 }
