@@ -79,7 +79,9 @@ const projectilesPath = "resources\\db\\projectiles_tables\\projectiles.tsv";
 const battleEntitiesPath = "resources\\db\\battle_entities_tables\\battle_entities.tsv";
 const missileWeaponsPath = "resources\\db\\missile_weapons_tables\\missile_weapons.tsv";
 const unitArmourTypesPath = "resources\\db\\unit_armour_types_tables\\unit_armour_types.tsv";
-const unitShieldTypesPath = "resources\\db\\unit_shield_types_tables\\unit_shield_types.tsv"
+const unitShieldTypesPath = "resources\\db\\unit_shield_types_tables\\unit_shield_types.tsv";
+const mountPath = "resources\\db\\mounts_tables\\mounts.tsv";
+const chariotPath = "resources\\db\\battlefield_chariots_tables\\battlefield_chariots.tsv";
 
 const maskFolder = "resources\\ui\\units\\mask\\";
 const iconFolder = "resources\\ui\\units\\icons\\";
@@ -431,6 +433,9 @@ class Unit{
             this.audio_language = audio_language;
             this.audio_vo_actor_group = audio_vo_actor_group;
             this.screen_name = screen_name;
+            this.hasMount = false;
+            this.hasChariot = false;
+            this.hasMissileWeapon = false;
     }
 
     addUnitCard(unitCard){
@@ -443,6 +448,7 @@ class Unit{
     }
 
     addMissileWeapon(missileWeapon){
+        this.hasMissileWeapon = true;
         this.missileWeapon = missileWeapon;
     }
     
@@ -474,6 +480,16 @@ class Unit{
 
     isGeneral(bool){
         this.isgeneral = bool;
+    }
+
+    addMount(mountEntity){
+        this.hasMount = true;
+        this.mountEntity = mountEntity;
+    }
+
+    addChariot(chariotEntity){
+        this.hasChariot = true;
+        this.chariotEntity = chariotEntity;
     }
 }
 
@@ -1104,7 +1120,8 @@ window.onload = async function(){
     let unitArmourTypesContent = await GetAndParseResource(unitArmourTypesPath);
     let unitShieldTypesContent = await GetAndParseResource(unitShieldTypesPath);
     let factionToUnitContent = await GetAndParseResource(factionToUnitPath);
-
+    let mountContent = await GetAndParseResource(mountPath);
+    let chariotContent = await GetAndParseResource(chariotPath);
 
     let factions = await loadFactions();
 
@@ -1164,12 +1181,37 @@ window.onload = async function(){
                 } else{
                     unit.isGeneral(false);
                 }
+
+                //Sort mount
+                if(unit.unit_class == "cav_shk" || unit.unit_class == "cav_mel" || unit.unit_class == "cav_mis" || unit.unit_class == "chariot" || unit.unit_class == "elph"){
+                    let mount = mountContent.find(m => m[0] == unit.mount);
+
+                    if(mount){
+                        let entityForMount = battleEntitiesContent.find(bec => bec[0] == mount[2]);
+                        let enitytForMountInfo = getSchemaIndexes(battleEntitiesSchema).map(idx => entityForMount[idx]);
+                        let mountEntity = createEntity.apply(this, enitytForMountInfo);
+                        unit.addMount(mountEntity);
+                    }
+
+                    if(unit.unit_class == "chariot"){
+                        let chariot = chariotContent.find(c => c[0] == unit.chariot);
+                        
+                        if(chariot){
+                            let entityForChariot = battleEntitiesContent.find(bec => bec[0] == chariot[1]);
+                            let enitytForChariotInfo = getSchemaIndexes(battleEntitiesSchema).map(idx => entityForChariot[idx]);
+                            let chariotEntity = createEntity.apply(this, enitytForChariotInfo);
+                            unit.addChariot(chariotEntity);
+                        }
+                    }
+                }
             })
         });
     });
 
     fillWithFactionFlags(faction1Element, faction1unitsElement, factions);
     fillWithFactionFlags(faction2Element,faction2unitsElement, factions);
+
+    console.log(factions);
 }
 
 
@@ -1246,7 +1288,11 @@ function fillWithFactionUnits(element, faction){
                     selectedChargeBonus.innerHTML = "<b>Charge bonus</b>: " + unit.charge_bonus;
                     selectedMeleeAttack.innerHTML = "<b>Melee Attack</b>: " + unit.melee_attack;
                     selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + unit.melee_defence;
-                    selectedSpeed.innerHTML = "<b>Speed</b>: " + (parseFloat(unit.entity.run_speed) * 10);
+                    if(unit.category == "cavalry"){
+                        selectedSpeed.innerHTML = "<b>Speed</b>: " + (parseFloat(unit.entity.h) * 10);
+                    } else {
+                        selectedSpeed.innerHTML = "<b>Speed</b>: " + (parseFloat(unit.entity.run_speed) * 10);
+                    }
                     selectedWeaponStrength.innerHTML = "<b>Weapon strength</b>: " + (parseInt(unit.meleeWeapon.damage) + parseInt(unit.meleeWeapon.ap_damage)) + " comprised of " + unit.meleeWeapon.damage + " BASE and " + unit.meleeWeapon.ap_damage + " AP";
                     selectedMorale.innerHTML = "<b>Morale</b>: " + unit.morale;
                     selectedMass.innerHTML = "<b>Mass</b>: " + parseInt(unit.entity.mass) + " (" + unit.weight + ")";
