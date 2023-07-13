@@ -436,6 +436,11 @@ class Unit{
             this.hasMount = false;
             this.hasChariot = false;
             this.hasMissileWeapon = false;
+            this.shieldDefenceValue = 0;
+    }
+
+    getMeleeDefence(){
+        return this.melee_defence + this.shieldDefenceValue;
     }
 
     addUnitCard(unitCard){
@@ -457,7 +462,23 @@ class Unit{
     }
 
     getHealth(){
-        return this.entity.hit_points + this.bonus_hit_points;
+        if(this.hasMount && this.hasChariot){
+            return this.entity.hit_points + this.mountEntity.hit_points + this.bonus_hit_points;
+        } else if(this.hasMount && !this.hasChariot){
+            return this.entity.hit_points + this.mountEntity.hit_points + this.bonus_hit_points;
+        } else {
+            return this.entity.hit_points + this.bonus_hit_points;
+        }
+    }
+
+    getSpeed(){
+        if(this.hasMount && this.hasChariot){
+            return parseInt(this.chariotEntity.run_speed * 10)
+        } else if(this.hasMount && !this.hasChariot){
+            return parseInt(this.mountEntity.run_speed * 10)
+        } else {
+            return parseInt(this.entity.run_speed * 10)
+        }
     }
 
     getMissileWeaponStrength(){
@@ -468,10 +489,11 @@ class Unit{
         }
     }
 
-    addArmourValues(armour, shield, missileBlockChance){
+    addArmourValues(armour, shield, shield_defence ,missileBlockChance){
         this.armourValue = parseInt(armour);
         this.shieldValue = parseInt(shield);
         this.missileBlockChance = parseInt(missileBlockChance);
+        this.shieldDefenceValue = parseInt(shield_defence);
     }
 
     getArmour(){
@@ -1093,7 +1115,7 @@ let selectedRange = document.getElementById("selected_range")
 let selectedAmmunition = document.getElementById("selected_ammunition");
 let selectedChargeBonus = document.getElementById("selected_charge_bonus");
 let selectedHealth = document.getElementById("selected_health");
-let selectedMass = document.getElementById("selected_mass");
+let selectedCategory = document.getElementById("selected_category");
 let selectedMPCost = document.getElementById("selected_mp_cost");
 let selectedMissileBlock = document.getElementById("selected_missile_block");
 let selectedShotsPerMinute = document.getElementById("selected_shots_per_minute");
@@ -1168,10 +1190,11 @@ window.onload = async function(){
                 let unitShield = unitShieldTypesContent.find(usc => usc[0] == unit.shield);
 
                 let armourValue = unitArmour[1];
+                let shieldDefenceValue = unitShield[1];
                 let shieldArmourValue = unitShield[2];
                 let missileBlockChance = unitShield[4];
-                
-                unit.addArmourValues(armourValue, shieldArmourValue, missileBlockChance);
+
+                unit.addArmourValues(armourValue, shieldArmourValue, parseInt(shieldDefenceValue), missileBlockChance);
 
                 // Is general?
                 let unitToFactionMap = factionToUnitContent.find(ftu => ftu[2] == unit.key && ftu[1] == "true");
@@ -1287,18 +1310,14 @@ function fillWithFactionUnits(element, faction){
                     selectedScreenName.innerHTML = "<b>Selected</b>: " + unit.screen_name;
                     selectedChargeBonus.innerHTML = "<b>Charge bonus</b>: " + unit.charge_bonus;
                     selectedMeleeAttack.innerHTML = "<b>Melee Attack</b>: " + unit.melee_attack;
-                    selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + unit.melee_defence;
-                    if(unit.category == "cavalry"){
-                        selectedSpeed.innerHTML = "<b>Speed</b>: " + (parseFloat(unit.entity.h) * 10);
-                    } else {
-                        selectedSpeed.innerHTML = "<b>Speed</b>: " + (parseFloat(unit.entity.run_speed) * 10);
-                    }
+                    selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + unit.getMeleeDefence() + " comprised of " + unit.melee_defence + " BASE and " + unit.shieldDefenceValue + " SHIELD";
+                    selectedSpeed.innerHTML = "<b>Speed</b>: " + unit.getSpeed();
                     selectedWeaponStrength.innerHTML = "<b>Weapon strength</b>: " + (parseInt(unit.meleeWeapon.damage) + parseInt(unit.meleeWeapon.ap_damage)) + " comprised of " + unit.meleeWeapon.damage + " BASE and " + unit.meleeWeapon.ap_damage + " AP";
                     selectedMorale.innerHTML = "<b>Morale</b>: " + unit.morale;
-                    selectedMass.innerHTML = "<b>Mass</b>: " + parseInt(unit.entity.mass) + " (" + unit.weight + ")";
+                    selectedCategory.innerHTML = "<b>Category</b>: " + unit.weight;
                     selectedHealth.innerHTML = "<b>Health</b>: " + unit.getHealth();
                     selectedMPCost.innerHTML = "<b>MP Cost</b>: " + unit.multiplayer_cost + " funds";
-                    selectedArmour.innerHTML = "<b>Armour</b>: " + unit.getArmour() + " comprised of " + unit.armourValue + " armour and " + unit.shieldValue + " shield ";
+                    selectedArmour.innerHTML = "<b>Armour</b>: " + unit.getArmour() + " comprised of " + unit.armourValue + " ARMOUR and " + unit.shieldValue + " SHIELD ";
                     selectedMissileBlock.innerHTML = "<b>Missile Block Chance</b>: " + unit.missileBlockChance;
                     selectedNumMen.innerHTML = "<b>Size: " + (unit.num_men * 0.75) + " entities";
     
@@ -1359,15 +1378,34 @@ function fillWithFactionUnits(element, faction){
                         }
     
     
-                        let mdDiff = selectedUnit.melee_attack - unit.melee_attack;
+                        let mdDiff = selectedUnit.getMeleeDefence() - unit.getMeleeDefence();
     
                         if(mdDiff > 0){
-                            selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + selectedUnit.melee_defence + " <span style=\"color:green;\">(+" + mdDiff + ")</span>";
+                            selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + selectedUnit.getMeleeDefence() + " <span style=\"color:green;\">(+" + mdDiff + ")</span>";
                         } else if (mdDiff == 0){
-                            selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + selectedUnit.melee_defence + " <span style=\"color:orange;\">(" + mdDiff + ")</span>";
+                            selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + selectedUnit.getMeleeDefence() + " <span style=\"color:orange;\">(" + mdDiff + ")</span>";
                         } else {
-                            selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + selectedUnit.melee_defence + " <span style=\"color:red;\">(" + mdDiff + ")</span>";
+                            selectedMeleeDefence.innerHTML = "<b>Melee Defence</b>: " + selectedUnit.getMeleeDefence() + " <span style=\"color:red;\">(" + mdDiff + ")</span>";
                         }
+
+                        let mdBaseDiff = selectedUnit.melee_defence - unit.melee_defence;
+                        if(mdBaseDiff > 0){
+                            selectedMeleeDefence.innerHTML += " comprised of " + selectedUnit.melee_defence + " BASE <span style=\"color:green;\">(+" + mdDiff + ")</span>";
+                        } else if (mdBaseDiff == 0){
+                            selectedMeleeDefence.innerHTML += " comprised of " + selectedUnit.melee_defence + " BASE <span style=\"color:orange;\">(" + mdDiff + ")</span>";
+                        } else {
+                            selectedMeleeDefence.innerHTML += " comprised of " + selectedUnit.melee_defence + " BASE <span style=\"color:red;\">(" + mdDiff + ")</span>";
+                        }
+
+                        let mdShieldDiff = selectedUnit.shieldDefenceValue - unit.shieldDefenceValue;
+                        if(mdShieldDiff > 0){
+                            selectedMeleeDefence.innerHTML += " and " + selectedUnit.melee_defence + " SHIELD <span style=\"color:green;\">(+" + mdShieldDiff + ")</span>";
+                        } else if (mdShieldDiff == 0){
+                            selectedMeleeDefence.innerHTML += " and " + selectedUnit.melee_defence + " SHIELD <span style=\"color:orange;\">(" + mdShieldDiff + ")</span>";
+                        } else {
+                            selectedMeleeDefence.innerHTML += " and " + selectedUnit.melee_defence + " SHIELD <span style=\"color:red;\">(" + mdShieldDiff + ")</span>";
+                        }
+                    
     
                         let moraleDiff = selectedUnit.morale - unit.morale;
     
@@ -1379,15 +1417,17 @@ function fillWithFactionUnits(element, faction){
                             selectedMorale.innerHTML = "<b>Morale</b>: " + selectedUnit.morale + " <span style=\"color:red;\">(" + moraleDiff + ")</span>";
                         }
     
-                        let massDiff = selectedUnit.entity.mass - unit.entity.mass;
+                        // let massDiff = selectedUnit.entity.mass - unit.entity.mass;
     
-                        if(massDiff > 0){
-                            selectedMass.innerHTML = "<b>Mass</b>: " + selectedUnit.entity.mass +" (" + selectedUnit.weight +  ") <span style=\"color:green;\">(+" + massDiff + ")</span>";
-                        } else if (massDiff == 0){
-                            selectedMass.innerHTML = "<b>Mass</b>: " + selectedUnit.entity.mass +" (" + selectedUnit.weight +  ") <span style=\"color:orange;\">(" + massDiff + ")</span>";
-                        } else {
-                            selectedMass.innerHTML = "<b>Mass</b>: " + selectedUnit.entity.mass +" (" + selectedUnit.weight +  ") <span style=\"color:red;\">(" + massDiff + ")</span>";
-                        }
+                        // if(massDiff > 0){
+                        //     selectedMass.innerHTML = "<b>Mass</b>: " + selectedUnit.entity.mass +" (" + selectedUnit.weight +  ") <span style=\"color:green;\">(+" + massDiff + ")</span>";
+                        // } else if (massDiff == 0){
+                        //     selectedMass.innerHTML = "<b>Mass</b>: " + selectedUnit.entity.mass +" (" + selectedUnit.weight +  ") <span style=\"color:orange;\">(" + massDiff + ")</span>";
+                        // } else {
+                        //     selectedMass.innerHTML = "<b>Mass</b>: " + selectedUnit.entity.mass +" (" + selectedUnit.weight +  ") <span style=\"color:red;\">(" + massDiff + ")</span>";
+                        // }
+
+                        selectedCategory.innerHTML = "<b>Category</b>: " + selectedUnit.weight + " (" + unit.weight + ")";
     
                         let wsDiff = (selectedUnit.meleeWeapon.damage + selectedUnit.meleeWeapon.ap_damage) - (unit.meleeWeapon.damage + unit.meleeWeapon.ap_damage);
                         let baseDiff = selectedUnit.meleeWeapon.damage - unit.meleeWeapon.damage;
@@ -1403,19 +1443,19 @@ function fillWithFactionUnits(element, faction){
                         }
     
                         if(baseDiff > 0){
-                            selectedWeaponStrength.innerHTML += "with base " + unit.meleeWeapon.damage + " <span style=\"color:green;\">(+" + baseDiff + ")</span> ";
+                            selectedWeaponStrength.innerHTML += "comprised of " + selectedUnit.meleeWeapon.damage + " BASE <span style=\"color:green;\">(+" + baseDiff + ")</span> ";
                         } else if (baseDiff == 0){
-                            selectedWeaponStrength.innerHTML += "with base " + unit.meleeWeapon.damage + " <span style=\"color:orange;\">(" + baseDiff + ")</span> ";
+                            selectedWeaponStrength.innerHTML += "comprised of " + selectedUnit.meleeWeapon.damage + " BASE <span style=\"color:orange;\">(" + baseDiff + ")</span> ";
                         } else {
-                            selectedWeaponStrength.innerHTML += "with base " + unit.meleeWeapon.damage + " <span style=\"color:red;\">(" + baseDiff + ")</span> ";
+                            selectedWeaponStrength.innerHTML += "comprised of " + selectedUnit.meleeWeapon.damage + " BASE <span style=\"color:red;\">(" + baseDiff + ")</span> ";
                         }
     
                         if(apDiff > 0){
-                            selectedWeaponStrength.innerHTML += "and ap " + unit.meleeWeapon.ap_damage + " <span style=\"color:green;\">(+" + apDiff + ")</span>";
+                            selectedWeaponStrength.innerHTML += "and " + selectedUnit.meleeWeapon.ap_damage + " AP <span style=\"color:green;\">(+" + apDiff + ")</span>";
                         } else if(apDiff == 0){
-                            selectedWeaponStrength.innerHTML += "and ap " + unit.meleeWeapon.ap_damage + " <span style=\"color:orange;\">(" + apDiff + ")</span>";
+                            selectedWeaponStrength.innerHTML += "and " + selectedUnit.meleeWeapon.ap_damage + " AP <span style=\"color:orange;\">(" + apDiff + ")</span>";
                         } else {
-                            selectedWeaponStrength.innerHTML += "and ap " + unit.meleeWeapon.ap_damage + " <span style=\"color:red;\">(" + apDiff + ")</span>";
+                            selectedWeaponStrength.innerHTML += "and " + selectedUnit.meleeWeapon.ap_damage + " AP <span style=\"color:red;\">(" + apDiff + ")</span>";
                         }
     
                         let costDiff = selectedUnit.multiplayer_cost - unit.multiplayer_cost;
